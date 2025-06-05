@@ -1,10 +1,10 @@
-# 💰 SecureBank – Flask-Based Secure Banking System
+# SecureBank – Flask-Based Secure Banking System
 
 A modern, secure, and educational banking application built using Python Flask that simulates real-world online banking workflows like user registration with email confirmation, password reset with secure tokens, file-based data storage, and OOP-based architecture.
 
 ---
 
-## 🚀 Core Features
+## Core Features
 
 - 🔐 User Registration with Email Confirmation (Flask-Mail + Token)
 - 🔑 Secure Login with Password Hashing (bcrypt)
@@ -48,3 +48,25 @@ A modern, secure, and educational banking application built using Python Flask t
 ```bash
 git clone https://github.com/yourusername/securebank.git
 cd securebank
+
+2. Create virtual environment:
+
+```bash
+python -m venv venv
+venv\Scripts\activate  # On Windows
+
+3. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+
+4. Configure Gmail in app/init.py:
+
+```bash
+app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
+app.config['MAIL_PASSWORD'] = 'your_gmail_app_password'
+
+5. Run the server:
+
+```bash
+python run.py
