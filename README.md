@@ -47,26 +47,31 @@ A modern, secure, and educational banking application built using Python Flask t
 
 ```bash
 git clone https://github.com/yourusername/securebank.git
-cd securebank
+cd securebank  
+```
 
 2. Create virtual environment:
 
 ```bash
 python -m venv venv
-venv\Scripts\activate  # On Windows
+./veve/Scripts/activate  # On Windows  
+```
 
 3. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
+```
 
 4. Configure Gmail in app/init.py:
 
 ```bash
 app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
 app.config['MAIL_PASSWORD'] = 'your_gmail_app_password'
+```
 
 5. Run the server:
 
 ```bash
 python run.py
+```
