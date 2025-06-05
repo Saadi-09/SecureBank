@@ -74,4 +74,7 @@ app.config['MAIL_PASSWORD'] = 'your_gmail_app_password'
 
 ```bash
 python run.py
-```
+```  
+---
+## 📜 License
+MIT License © 2025 Saad Ali
