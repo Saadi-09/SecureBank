@@ -46,7 +46,7 @@ A modern, secure, and educational banking application built using Python Flask t
 1. Clone the repo:
 
 ```bash
-git clone https://github.com/yourusername/securebank.git
+git clone https://github.com/Saadi-09/SecureBank.git
 cd securebank  
 ```
 
@@ -63,11 +63,11 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-4. Configure Gmail in app/init.py:
+4. Configure Gmail in app/init0.py:
 
 ```bash
 app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
-app.config['MAIL_PASSWORD'] = 'your_gmail_app_password'
+app.config['MAIL_PASSWORD'] = 'your_gmail_app_password' #Use an App Password, not your primary Gmail password.
 ```
 
 5. Run the server:
@@ -77,4 +77,4 @@ python run.py
 ```  
 ---
 ## 📜 License
-MIT License © 2025 Saad Ali
+MIT License © 2025 Saad Ali | Note: Intended for educational use.
