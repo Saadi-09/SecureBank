@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Print - Transaction History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      @media print {
+        .no-print { display: none; }
+      }
+    </style>
+  </head>
+  <body onload="window.print()">
+    <div class="container mt-4">
+      <h2 class="mb-4">Transaction History for {{ username }}</h2>
+      
+      {% if history %}
+        <ul class="list-group">
+          {% for entry in history %}
+            <li class="list-group-item">{{ entry }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No transactions found.</p>
+      {% endif %}
+
+      <button class="btn btn-secondary mt-4 no-print" onclick="window.close()">Close</button>
+    </div>
+  </body>
+</html>

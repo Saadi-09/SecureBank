@@ -1,0 +1,12 @@
+{
+    "test_user": {
+        "email": "uw-23-cy-bs-050@student.uow.edu.pk",
+        "password": "$2b$12$9CYHiz7.pAAC5tdN6MtmlOIK2fVDPIp8sf9ZCVOHPXuA2.SjvqND2",
+        "balance": 2000.0,
+        "history": [
+            "Deposited $2200.00",
+            "Withdrew $200.00"
+        ],
+        "confirmed": true
+    }
+}

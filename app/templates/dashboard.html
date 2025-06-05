@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | Secure Bank{% endblock %}
+
+{% block content %}
+  <h2 class="mb-4">Hello, {{ username }} 👋</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <p class="m-0"><strong>Balance:</strong> ${{ balance }}</p>
+    <a href="/print_history" target="_blank" class="btn btn-outline-primary btn-sm">
+      🖨️ Print History
+    </a>
+  </div>
+  
+  <div class="row">
+    <div class="col-md-6">
+      <h4 class="mt-4">Deposit Funds</h4>
+      <form method="POST" action="/deposit">
+        <div class="mb-2">
+          <input type="number" step="0.01" name="amount" class="form-control" placeholder="Amount to deposit" required>
+        </div>
+        <button type="submit" class="btn btn-success w-100">Deposit</button>
+      </form>
+    </div>
+
+    <div class="col-md-6">
+      <h4 class="mt-4">Withdraw Funds</h4>
+      <form method="POST" action="/withdraw">
+        <div class="mb-2">
+          <input type="number" step="0.01" name="amount" class="form-control" placeholder="Amount to withdraw" required>
+        </div>
+        <button type="submit" class="btn btn-danger w-100">Withdraw</button>
+      </form>
+    </div>
+  </div>
+
+  <h4 class="mt-5">Transaction History</h4>
+  {% if history %}
+    <ul class="list-group">
+      {% for entry in history %}
+        <li class="list-group-item">{{ entry }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No transactions yet.</p>
+  {% endif %}
+
+  <a href="/logout" class="btn btn-outline-dark mt-4">Logout</a>
+{% endblock %}
