@@ -54,7 +54,7 @@ cd securebank
 
 ```bash
 python -m venv venv
-./veve/Scripts/activate  # On Windows  
+./venv/Scripts/activate  # On Windows  
 ```
 
 3. Install dependencies:
