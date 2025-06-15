@@ -2,6 +2,7 @@
 
 import json
 import os
+from datetime import datetime
 from app.user import User
 
 
@@ -56,24 +57,28 @@ class Bank:
 
     def deposit(self, username, amount):
         """
-        Adds balance and appends transaction history.
+        Adds balance and appends transaction history with timestamp.
         """
         user = self.get_user(username)
         if user:
             user.balance += amount
-            user.history.append(f"Deposited ${amount:.2f}")
+            now = datetime.now().strftime("%d %b %Y at %I:%M %p")
+            user.history.append(f"Deposited ${amount:.2f} on {now}")
             self.save_users()
             return True
         return False
 
+
     def withdraw(self, username, amount):
         """
-        Deducts balance if enough funds exist.
+        Deducts balance if enough funds exist and appends timestamped history.
         """
         user = self.get_user(username)
         if user and user.balance >= amount:
             user.balance -= amount
-            user.history.append(f"Withdrew ${amount:.2f}")
+            now = datetime.now().strftime("%d %b %Y at %I:%M %p")
+            user.history.append(f"Withdrew ${amount:.2f} on {now}")
             self.save_users()
             return True
         return False
+
