@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 import json
 import os
+import secrets
 from flask_mail import Message
 from app.init0 import mail
 from itsdangerous import URLSafeTimedSerializer
@@ -155,6 +156,7 @@ def login():
             return redirect("/login")
 
         if bank.authenticate(username, password, bcrypt):
+            session.permanent = True  # ✅ activates timeout timer
             session["username"] = username
             flash(f"Welcome {username}!")
             return redirect("/dashboard")
@@ -187,14 +189,17 @@ def confirm_email(token):
 
     return redirect("/login")
 
-@main.route("/dashboard")
+@main.route('/dashboard')
 def dashboard():
-    if "username" not in session:
-        flash("Please login first.")
-        return redirect("/login")
-
-    user = bank.get_user(session["username"])
-    return render_template("dashboard.html", username=user.username, balance=user.balance, history=user.history)
+    if 'username' not in session:
+        return redirect(url_for('main.login'))
+    user = bank.get_user(session['username'])
+    return render_template("dashboard.html",
+                          username=session["username"],
+                          email=user.email,
+                          balance=user.balance,
+                          history=user.history,
+                          bank=bank) 
 
 @main.route("/logout")
 def logout():
@@ -205,7 +210,7 @@ def logout():
 @main.route("/deposit", methods=["POST"])
 def deposit():
     if "username" not in session:
-        flash("Please login first.")
+        flash("Your session has expired due to inactivity. Please log in again.")
         return redirect("/login")
 
     try:
@@ -226,24 +231,90 @@ def deposit():
 @main.route("/withdraw", methods=["POST"])
 def withdraw():
     if "username" not in session:
-        flash("Please login first.")
+        flash("⚠️ Session expired. Please login first.")
         return redirect("/login")
 
+    username = session["username"]
+    amount_str = request.form["amount"]
+    confirm_pw = request.form.get("confirm_password", "")
+
     try:
-        amount = float(request.form["amount"])
+        amount = float(amount_str)
         if amount <= 0:
             raise ValueError
     except:
         flash("Invalid amount.")
         return redirect("/dashboard")
 
-    if bank.withdraw(session["username"], amount):
+    user = bank.get_user(username)
+
+    # 🔐 Only check password if amount ≥ 10000
+    if amount >= 10000:
+        if not bcrypt.checkpw(confirm_pw.encode(), user.password.encode()):
+            flash("❌ Password incorrect.")
+            return redirect("/dashboard")
+
+        # Generate OTP and store in session
+        otp = secrets.randbelow(900000) + 100000
+        session["otp_code"] = str(otp)
+        session["otp_amount"] = amount
+        session["otp_time"] = datetime.now().timestamp()
+
+        # Send OTP via email
+        msg = Message("🔐 OTP Verification for Withdrawal",
+                      sender="your_email@gmail.com",
+                      recipients=[user.email])
+        msg.body = f"Use this OTP to confirm your withdrawal: {otp}\n\nThis code is valid for 5 minutes."
+        mail.send(msg)
+
+        flash("✅ OTP sent to your email. Please verify to complete the transaction.")
+        return redirect("/verify-otp")
+
+    # 💸 For amount < 10000 → directly withdraw (no password check)
+    if bank.withdraw(username, amount):
         flash(f"Withdrew ${amount:.2f} successfully.")
     else:
         flash("Insufficient balance.")
 
     return redirect("/dashboard")
 
+@main.route("/verify-otp", methods=["GET", "POST"])
+def verify_otp():
+    if "username" not in session:
+        flash("Please login first.")
+        return redirect("/login")
+
+    if request.method == "POST":
+        entered_otp = request.form["otp"]
+        stored_otp = session.get("otp_code")
+        otp_amount = session.get("otp_amount")
+        otp_time = session.get("otp_time")
+
+        if not stored_otp or not otp_amount or not otp_time:
+            flash("Session expired or invalid.")
+            return redirect("/dashboard")
+
+        if datetime.now().timestamp() - otp_time > 300:
+            flash("OTP expired. Try again.")
+            return redirect("/dashboard")
+
+        if entered_otp != stored_otp:
+            flash("Incorrect OTP.")
+            return redirect("/verify-otp")
+
+        if bank.withdraw(session["username"], otp_amount):
+            flash(f"✅ Withdrawn ${otp_amount:.2f} successfully via OTP.")
+        else:
+            flash("Insufficient balance.")
+
+        # Clear OTP session
+        session.pop("otp_code", None)
+        session.pop("otp_amount", None)
+        session.pop("otp_time", None)
+
+        return redirect("/dashboard")
+
+    return render_template("verify_otp.html")
 
 @main.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
@@ -324,9 +395,53 @@ def reset_with_token(token):
 @main.route("/print_history")
 def print_history():
     if "username" not in session:
-        flash("Please login first.")
+        flash("⚠️ Session expired. Please login first.")
         return redirect("/login")
 
     user = bank.get_user(session["username"])
+
+    # Show full transaction history (not sliced)
     return render_template("print_history.html", username=user.username, history=user.history)
+
+@main.route("/change-password", methods=["GET", "POST"])
+def change_password():
+    if "username" not in session:
+        flash("⚠️ Session expired. Please login first.")
+        return redirect("/login")
+
+    user = bank.get_user(session["username"])
+
+    if request.method == "POST":
+        current = request.form["current_password"]
+        new = request.form["new_password"]
+
+        if not bcrypt.checkpw(current.encode(), user.password.encode()):
+            flash("❌ Current password is incorrect.")
+            return redirect("/change-password")
+
+        import re
+        if (len(new) < 8 or len(new) > 16 or
+            not re.search(r'[A-Z]', new) or
+            not re.search(r'[a-z]', new) or
+            not re.search(r'\d', new) or
+            not re.search(r'[!@#$%^&*(),.?":{}|<>]', new)):
+            flash("❌ New password does not meet strength requirements.")
+            return redirect("/change-password")
+
+        user.password = bcrypt.hashpw(new.encode(), bcrypt.gensalt()).decode()
+        bank.save_users()
+        flash("✅ Password changed successfully.")
+        return redirect("/dashboard")
+
+    return render_template("change_password.html")
+
+@main.app_context_processor
+def inject_now():
+    from datetime import datetime
+    return dict(now=lambda: datetime.now())
+
+@main.app_context_processor
+def inject_bank():
+    return dict(bank=bank)
+
 
