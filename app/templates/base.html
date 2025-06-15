@@ -19,12 +19,36 @@
     <!-- Navbar -->
     <body class="light-mode">
       <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container d-flex justify-content-between align-items-center">
-          <a class="navbar-brand" href="/">SecureBank</a>
-          <button onclick="toggleTheme()" class="btn btn-sm btn-outline-light">🌙 Dark Mode</button>
-        </div>
-      </nav>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <button onclick="toggleSidebar()" class="btn btn-sm btn-outline-light">☰</button>
+        <a class="navbar-brand mb-0 h1" href="/">SecureBank</a>
+      </div>
+      <button onclick="toggleTheme()" class="btn btn-sm btn-outline-light">🌙 Dark Mode</button>
+    </div>
+  </nav>
+
+  <!-- Sidebar Panel -->
+  <div id="sidebar-backdrop" onclick="toggleSidebar()" 
+  class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"
+  style="display: none; z-index: 998;"></div>
+
+  <div id="sidebar" class="position-fixed top-0 start-0 vh-100 shadow p-4"
+  style="width: 280px; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 999;
+        background-color: var(--sidebar-bg, #ffffff); color: var(--sidebar-text, #000000);">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+  <h5 class="mb-0">👤 Profile</h5>
+  <button onclick="toggleSidebar()" class="btn-close"></button>
+  </div>
+  {% if session['username'] %}
+  <p><strong>Username:</strong> {{ session['username'] }}</p>
+  <p><strong>Email:</strong> {{ bank.get_user(session['username']).email }}</p>
+  <hr>
+  <a href="/change-password" class="btn btn-warning w-100 mb-2">🔑 Change Password</a>
+  <a href="/logout" class="btn btn-outline-danger w-100">🚪 Logout</a>
+  {% endif %}
+  </div>
 
     <!-- Page Content -->
     <div class="container mt-4">
@@ -65,6 +89,82 @@
 </script>
 
 {% block scripts %}{% endblock %}
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const backdrop = document.getElementById("sidebar-backdrop");
+    const isOpen = sidebar.style.transform === "translateX(0%)";
 
+    if (isOpen) {
+      sidebar.style.transform = "translateX(-100%)";
+      backdrop.style.display = "none";
+    } else {
+      sidebar.style.transform = "translateX(0%)";
+      backdrop.style.display = "block";
+    }
+  }
+
+  // Handle sidebar theme dynamically
+  window.addEventListener('DOMContentLoaded', () => {
+    const bodyDark = document.body.classList.contains("dark-mode");
+    const sidebar = document.getElementById("sidebar");
+    if (bodyDark) {
+      sidebar.style.setProperty('--sidebar-bg', '#343a40');
+      sidebar.style.setProperty('--sidebar-text', '#f8f9fa');
+    } else {
+      sidebar.style.setProperty('--sidebar-bg', '#ffffff');
+      sidebar.style.setProperty('--sidebar-text', '#000000');
+    }
+  });
+
+  // Update on dark/light toggle
+  function toggleTheme() {
+    const body = document.body;
+    const isDark = body.classList.contains("dark-mode");
+    const sidebar = document.getElementById("sidebar");
+
+    if (isDark) {
+      body.classList.remove("dark-mode");
+      body.classList.add("light-mode");
+      event.target.innerText = "🌙 Dark Mode";
+      sidebar.style.setProperty('--sidebar-bg', '#ffffff');
+      sidebar.style.setProperty('--sidebar-text', '#000000');
+    } else {
+      body.classList.remove("light-mode");
+      body.classList.add("dark-mode");
+      event.target.innerText = "☀️ Light Mode";
+      sidebar.style.setProperty('--sidebar-bg', '#343a40');
+      sidebar.style.setProperty('--sidebar-text', '#f8f9fa');
+    }
+  }
+</script>
+<script>
+  function handleWithdraw() {
+    const amount = parseFloat(document.getElementById("withdraw-amount").value);
+    if (isNaN(amount)) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+  
+    if (amount >= 10000) {
+      const modal = new bootstrap.Modal(document.getElementById("passwordModal"));
+      modal.show();
+    } else {
+      document.getElementById("withdraw-form").submit(); // submit without password
+    }
+  }
+  
+  function submitWithdraw() {
+    const password = document.getElementById("modal-password").value.trim();
+    if (!password) {
+      alert("Password is required.");
+      return;
+    }
+  
+    document.getElementById("confirm_password").value = password;
+    document.getElementById("withdraw-form").submit();
+  }
+  </script>
+  
   </body>
 </html>
